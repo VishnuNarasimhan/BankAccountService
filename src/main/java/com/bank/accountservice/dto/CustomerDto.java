@@ -7,4 +7,6 @@ public class CustomerDto {
     private String name;
     private String mail;
     private String mobileNumber;
+
+    private AccountDto accountDto;
 }
