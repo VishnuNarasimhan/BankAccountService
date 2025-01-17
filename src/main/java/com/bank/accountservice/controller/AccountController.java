@@ -4,15 +4,21 @@ import com.bank.accountservice.constants.AccountConstants;
 import com.bank.accountservice.dto.CustomerDto;
 import com.bank.accountservice.dto.ResponseDto;
 import com.bank.accountservice.service.IAccountService;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(value = "/api", produces = {MediaType.APPLICATION_JSON_VALUE})
 @AllArgsConstructor
+@Validated // Perform validations for the API's under this controller.
+// But validations doesn't know how to send error into error response or body of the response
+// So extend the ResponseEntityExceptionHandler in GlobalExceptionHandler
 public class AccountController {
 
     private IAccountService iAccountService;
@@ -22,7 +28,9 @@ public class AccountController {
      * @return ResponseDTO
      */
     @PostMapping("/create")
-    public ResponseEntity<ResponseDto> createAccount(@RequestBody CustomerDto customerDto) {
+    public ResponseEntity<ResponseDto> createAccount(@Valid @RequestBody CustomerDto customerDto) {
+        // @Valid - Performs all the validations mentioned under the CustomerDto
+
         iAccountService.createAccount(customerDto);
 
         // Below code will be executed if there is no exception.
@@ -33,7 +41,9 @@ public class AccountController {
     }
 
     @GetMapping("/fetch")
-    public ResponseEntity<CustomerDto> fetchAccountDetails(@RequestParam String mobileNumber) {
+    public ResponseEntity<CustomerDto> fetchAccountDetails(@RequestParam
+                                                               @Pattern(regexp = "(^$|[0-9]{10})", message = "Mobile number cannot be null or empty")
+                                                               String mobileNumber) {
         CustomerDto customerDto = iAccountService.fetchAccount(mobileNumber);
 
         return ResponseEntity
@@ -42,7 +52,7 @@ public class AccountController {
     }
 
     @PutMapping("/update")
-    public ResponseEntity<ResponseDto> updateAccountDetails(@RequestBody CustomerDto customerDto) {
+    public ResponseEntity<ResponseDto> updateAccountDetails(@Valid @RequestBody CustomerDto customerDto) {
         boolean isUpdated = iAccountService.updateAccount(customerDto);
 
         if (isUpdated) {
@@ -58,7 +68,9 @@ public class AccountController {
     }
 
     @DeleteMapping("/delete")
-    public ResponseEntity<ResponseDto> deleteAccount(@RequestParam String mobileNumber) {
+    public ResponseEntity<ResponseDto> deleteAccount(@RequestParam
+                                                         @Pattern(regexp = "(^$|[0-9]{10})", message = "Mobile number cannot be null or empty")
+                                                         String mobileNumber) {
         boolean isDeleted = iAccountService.deleteAccount(mobileNumber);
 
         if (isDeleted) {
